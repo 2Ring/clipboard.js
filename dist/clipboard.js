@@ -4,7 +4,7 @@
  *
  * Licensed MIT © Zeno Rocha
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Clipboard = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Clipboard = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 var DOCUMENT_NODE_TYPE = 9;
 
 /**
@@ -52,7 +52,7 @@ var closest = require('./closest');
  * @param {Boolean} useCapture
  * @return {Object}
  */
-function delegate(element, selector, type, callback, useCapture) {
+function _delegate(element, selector, type, callback, useCapture) {
     var listenerFn = listener.apply(this, arguments);
 
     element.addEventListener(type, listenerFn, useCapture);
@@ -62,6 +62,40 @@ function delegate(element, selector, type, callback, useCapture) {
             element.removeEventListener(type, listenerFn, useCapture);
         }
     }
+}
+
+/**
+ * Delegates event to a selector.
+ *
+ * @param {Element|String|Array} [elements]
+ * @param {String} selector
+ * @param {String} type
+ * @param {Function} callback
+ * @param {Boolean} useCapture
+ * @return {Object}
+ */
+function delegate(elements, selector, type, callback, useCapture) {
+    // Handle the regular Element usage
+    if (typeof elements.addEventListener === 'function') {
+        return _delegate.apply(null, arguments);
+    }
+
+    // Handle Element-less usage, it defaults to global delegation
+    if (typeof type === 'function') {
+        // Use `document` as the first parameter, then apply arguments
+        // This is a short way to .unshift `arguments` without running into deoptimizations
+        return _delegate.bind(null, document).apply(null, arguments);
+    }
+
+    // Handle Selector-based usage
+    if (typeof elements === 'string') {
+        elements = document.querySelectorAll(elements);
+    }
+
+    // Handle Array-like based usage
+    return Array.prototype.map.call(elements, function (element) {
+        return _delegate(element, selector, type, callback, useCapture);
+    });
 }
 
 /**
@@ -347,6 +381,14 @@ E.prototype = {
 module.exports = E;
 
 },{}],7:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
         define(['module', 'select'], factory);
@@ -359,47 +401,21 @@ module.exports = E;
         factory(mod, global.select);
         global.clipboardAction = mod.exports;
     }
-})(this, function (module, _select) {
+})(undefined, function (module, _select) {
     'use strict';
 
     var _select2 = _interopRequireDefault(_select);
 
     function _interopRequireDefault(obj) {
         return obj && obj.__esModule ? obj : {
-            default: obj
+            'default': obj
         };
     }
 
-    var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-        return typeof obj;
-    } : function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _createClass = function () {
-        function defineProperties(target, props) {
-            for (var i = 0; i < props.length; i++) {
-                var descriptor = props[i];
-                descriptor.enumerable = descriptor.enumerable || false;
-                descriptor.configurable = true;
-                if ("value" in descriptor) descriptor.writable = true;
-                Object.defineProperty(target, descriptor.key, descriptor);
-            }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-            if (protoProps) defineProperties(Constructor.prototype, protoProps);
-            if (staticProps) defineProperties(Constructor, staticProps);
-            return Constructor;
-        };
-    }();
-
+    /**
+     * Inner class which performs selection from either `text` or `target`
+     * properties and then executes copy or cut operations.
+     */
     var ClipboardAction = function () {
         /**
          * @param {Object} options
@@ -431,6 +447,12 @@ module.exports = E;
 
                 this.selectedText = '';
             }
+
+            /**
+             * Decides which selection strategy is going to be applied based
+             * on the existence of `text` and `target` properties.
+             */
+
         }, {
             key: 'initSelection',
             value: function initSelection() {
@@ -440,6 +462,12 @@ module.exports = E;
                     this.selectTarget();
                 }
             }
+
+            /**
+             * Creates a fake textarea element, sets its value from `text` property,
+             * and makes a selection on it.
+             */
+
         }, {
             key: 'selectFake',
             value: function selectFake() {
@@ -473,9 +501,15 @@ module.exports = E;
 
                 this.container.appendChild(this.fakeElem);
 
-                this.selectedText = (0, _select2.default)(this.fakeElem);
+                this.selectedText = (0, _select2['default'])(this.fakeElem);
                 this.copyText();
             }
+
+            /**
+             * Only removes the fake element after another click event, that way
+             * a user can hit `Ctrl+C` to copy because selection still exists.
+             */
+
         }, {
             key: 'removeFake',
             value: function removeFake() {
@@ -490,12 +524,22 @@ module.exports = E;
                     this.fakeElem = null;
                 }
             }
+
+            /**
+             * Selects the content from element passed on `target` property.
+             */
+
         }, {
             key: 'selectTarget',
             value: function selectTarget() {
-                this.selectedText = (0, _select2.default)(this.target);
+                this.selectedText = (0, _select2['default'])(this.target);
                 this.copyText();
             }
+
+            /**
+             * Executes the copy operation based on the current selection.
+             */
+
         }, {
             key: 'copyText',
             value: function copyText() {
@@ -509,6 +553,12 @@ module.exports = E;
 
                 this.handleResult(succeeded);
             }
+
+            /**
+             * Fires an event based on the copy operation result.
+             * @param {Boolean} succeeded
+             */
+
         }, {
             key: 'handleResult',
             value: function handleResult(succeeded) {
@@ -519,6 +569,11 @@ module.exports = E;
                     clearSelection: this.clearSelection.bind(this)
                 });
             }
+
+            /**
+             * Moves focus away from `target` and back to the trigger, removes current selection.
+             */
+
         }, {
             key: 'clearSelection',
             value: function clearSelection() {
@@ -528,8 +583,19 @@ module.exports = E;
 
                 window.getSelection().removeAllRanges();
             }
+
+            /**
+             * Sets the `action` to be performed which can be either 'copy' or 'cut'.
+             * @param {String} action
+             */
+
         }, {
             key: 'destroy',
+
+
+            /**
+             * Destroy lifecycle.
+             */
             value: function destroy() {
                 this.removeFake();
             }
@@ -543,10 +609,23 @@ module.exports = E;
                 if (this._action !== 'copy' && this._action !== 'cut') {
                     throw new Error('Invalid "action" value, use either "copy" or "cut"');
                 }
-            },
+            }
+
+            /**
+             * Gets the `action` property.
+             * @return {String}
+             */
+            ,
             get: function get() {
                 return this._action;
             }
+
+            /**
+             * Sets the `target` property using an element
+             * that will be have its content copied.
+             * @param {Element} target
+             */
+
         }, {
             key: 'target',
             set: function set(target) {
@@ -565,7 +644,13 @@ module.exports = E;
                         throw new Error('Invalid "target" value, use a valid Element');
                     }
                 }
-            },
+            }
+
+            /**
+             * Gets the `target` property.
+             * @return {String|HTMLElement}
+             */
+            ,
             get: function get() {
                 return this._target;
             }
@@ -578,6 +663,18 @@ module.exports = E;
 });
 
 },{"select":5}],8:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
         define(['module', './clipboard-action', 'tiny-emitter', 'good-listener'], factory);
@@ -590,7 +687,7 @@ module.exports = E;
         factory(mod, global.clipboardAction, global.tinyEmitter, global.goodListener);
         global.clipboard = mod.exports;
     }
-})(this, function (module, _clipboardAction, _tinyEmitter, _goodListener) {
+})(undefined, function (module, _clipboardAction, _tinyEmitter, _goodListener) {
     'use strict';
 
     var _clipboardAction2 = _interopRequireDefault(_clipboardAction);
@@ -601,66 +698,16 @@ module.exports = E;
 
     function _interopRequireDefault(obj) {
         return obj && obj.__esModule ? obj : {
-            default: obj
+            'default': obj
         };
     }
 
-    var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-        return typeof obj;
-    } : function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _createClass = function () {
-        function defineProperties(target, props) {
-            for (var i = 0; i < props.length; i++) {
-                var descriptor = props[i];
-                descriptor.enumerable = descriptor.enumerable || false;
-                descriptor.configurable = true;
-                if ("value" in descriptor) descriptor.writable = true;
-                Object.defineProperty(target, descriptor.key, descriptor);
-            }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-            if (protoProps) defineProperties(Constructor.prototype, protoProps);
-            if (staticProps) defineProperties(Constructor, staticProps);
-            return Constructor;
-        };
-    }();
-
-    function _possibleConstructorReturn(self, call) {
-        if (!self) {
-            throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-        }
-
-        return call && (typeof call === "object" || typeof call === "function") ? call : self;
-    }
-
-    function _inherits(subClass, superClass) {
-        if (typeof superClass !== "function" && superClass !== null) {
-            throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-        }
-
-        subClass.prototype = Object.create(superClass && superClass.prototype, {
-            constructor: {
-                value: subClass,
-                enumerable: false,
-                writable: true,
-                configurable: true
-            }
-        });
-        if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-    }
-
-    var Clipboard = function (_Emitter) {
-        _inherits(Clipboard, _Emitter);
+    /**
+     * Base class which takes one or more elements, adds event listeners to them,
+     * and instantiates a new `ClipboardAction` on each click.
+     */
+    var Clipboard = function (_tinyEmitter2$default) {
+        _inherits(Clipboard, _tinyEmitter2$default);
 
         /**
          * @param {String|HTMLElement|HTMLCollection|NodeList} trigger
@@ -693,15 +740,27 @@ module.exports = E;
                 this.text = typeof options.text === 'function' ? options.text : this.defaultText;
                 this.container = _typeof(options.container) === 'object' ? options.container : document.body;
             }
+
+            /**
+             * Adds a click event listener to the passed trigger.
+             * @param {String|HTMLElement|HTMLCollection|NodeList} trigger
+             */
+
         }, {
             key: 'listenClick',
             value: function listenClick(trigger) {
                 var _this2 = this;
 
-                this.listener = (0, _goodListener2.default)(trigger, 'click', function (e) {
+                this.listener = (0, _goodListener2['default'])(trigger, 'click', function (e) {
                     return _this2.onClick(e);
                 });
             }
+
+            /**
+             * Defines a new `ClipboardAction` on each click event.
+             * @param {Event} e
+             */
+
         }, {
             key: 'onClick',
             value: function onClick(e) {
@@ -711,7 +770,7 @@ module.exports = E;
                     this.clipboardAction = null;
                 }
 
-                this.clipboardAction = new _clipboardAction2.default({
+                this.clipboardAction = new _clipboardAction2['default']({
                     action: this.action(trigger),
                     target: this.target(trigger),
                     text: this.text(trigger),
@@ -720,11 +779,23 @@ module.exports = E;
                     emitter: this
                 });
             }
+
+            /**
+             * Default `action` lookup function.
+             * @param {Element} trigger
+             */
+
         }, {
             key: 'defaultAction',
             value: function defaultAction(trigger) {
                 return getAttributeValue('action', trigger);
             }
+
+            /**
+             * Default `target` lookup function.
+             * @param {Element} trigger
+             */
+
         }, {
             key: 'defaultTarget',
             value: function defaultTarget(trigger) {
@@ -734,11 +805,29 @@ module.exports = E;
                     return document.querySelector(selector);
                 }
             }
+
+            /**
+             * Returns the support of the given action, or all actions if no action is
+             * given.
+             * @param {String} [action]
+             */
+
         }, {
             key: 'defaultText',
+
+
+            /**
+             * Default `text` lookup function.
+             * @param {Element} trigger
+             */
             value: function defaultText(trigger) {
                 return getAttributeValue('text', trigger);
             }
+
+            /**
+             * Destroy lifecycle.
+             */
+
         }, {
             key: 'destroy',
             value: function destroy() {
@@ -766,13 +855,15 @@ module.exports = E;
         }]);
 
         return Clipboard;
-    }(_tinyEmitter2.default);
+    }(_tinyEmitter2['default']);
 
     /**
      * Helper function to retrieve attribute value.
      * @param {String} suffix
      * @param {Element} element
      */
+
+
     function getAttributeValue(suffix, element) {
         var attribute = 'data-clipboard-' + suffix;
 

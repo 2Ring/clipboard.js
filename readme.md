@@ -1,4 +1,5 @@
-# clipboard.js
+# clipboard.js 
+## IE8 support 'default' keyword fix
 
 [![Build Status](http://img.shields.io/travis/zenorocha/clipboard.js/master.svg?style=flat)](https://travis-ci.org/zenorocha/clipboard.js)
 ![Killing Flash](https://img.shields.io/badge/killing-flash-brightgreen.svg?style=flat)
