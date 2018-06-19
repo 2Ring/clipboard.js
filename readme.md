@@ -35,7 +35,7 @@ First, include the script located on the `dist` folder or load it from [a third-
 Now, you need to instantiate it by [passing a DOM selector](https://github.com/zenorocha/clipboard.js/blob/master/demo/constructor-selector.html#L18), [HTML element](https://github.com/zenorocha/clipboard.js/blob/master/demo/constructor-node.html#L16-L17), or [list of HTML elements](https://github.com/zenorocha/clipboard.js/blob/master/demo/constructor-nodelist.html#L18-L19).
 
 ```js
-new Clipboard('.btn');
+new ClipboardJS('.btn');
 ```
 
 Internally, we need to fetch all elements that matches with your selector and attach event listeners for each one. But guess what? If you have hundreds of matches, this operation can consume a lot of memory.
@@ -104,7 +104,7 @@ There are cases where you'd like to show some user feedback or capture what has 
 That's why we fire custom events such as `success` and `error` for you to listen and implement your custom logic.
 
 ```js
-var clipboard = new Clipboard('.btn');
+var clipboard = new ClipboardJS('.btn');
 
 clipboard.on('success', function(e) {
     console.info('Action:', e.action);
@@ -135,7 +135,7 @@ If you don't want to modify your HTML, there's a pretty handy imperative API for
 For instance, if you want to dynamically set a `target`, you'll need to return a Node.
 
 ```js
-new Clipboard('.btn', {
+new ClipboardJS('.btn', {
     target: function(trigger) {
         return trigger.nextElementSibling;
     }
@@ -145,7 +145,7 @@ new Clipboard('.btn', {
 If you want to dynamically set a `text`, you'll return a String.
 
 ```js
-new Clipboard('.btn', {
+new ClipboardJS('.btn', {
     text: function(trigger) {
         return trigger.getAttribute('aria-label');
     }
@@ -155,7 +155,7 @@ new Clipboard('.btn', {
 For use in Bootstrap Modals or with any other library that changes the focus you'll want to set the focused element as the `container` value.
 
 ```js
-new Clipboard('.btn', {
+new ClipboardJS('.btn', {
     container: document.getElementById('modal')
 });
 ```
@@ -163,7 +163,7 @@ new Clipboard('.btn', {
 Also, if you are working with single page apps, you may want to manage the lifecycle of the DOM more precisely. Here's how you clean up the events and objects that we create.
 
 ```js
-var clipboard = new Clipboard('.btn');
+var clipboard = new ClipboardJS('.btn');
 clipboard.destroy();
 ```
 
@@ -177,7 +177,7 @@ This library relies on both [Selection](https://developer.mozilla.org/en-US/docs
 
 The good news is that clipboard.js gracefully degrades if you need to support older browsers. All you have to do is show a tooltip saying `Copied!` when `success` event is called and `Press Ctrl+C to copy` when `error` event is called because the text is already selected.
 
-You can also check if clipboard.js is supported or not by running `Clipboard.isSupported()`, that way you can hide copy/cut buttons from the UI.
+You can also check if clipboard.js is supported or not by running `ClipboardJS.isSupported()`, that way you can hide copy/cut buttons from the UI.
 
 ## Bonus
 
