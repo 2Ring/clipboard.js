@@ -6,6 +6,7 @@
   "license": "MIT",
   "main": "dist/clipboard.js",
   "module": "dist/clipboard.js",
+  "typings": "clipboard.d.ts",
   "keywords": [
     "clipboard",
     "copy",
